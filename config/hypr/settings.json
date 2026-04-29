@@ -238,6 +238,13 @@
       "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle monitors"
     },
     {
+      "type": "bind",
+      "mods": "$mainMod",
+      "key": "G",
+      "dispatcher": "exec",
+      "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle github"
+    },
+    {
       "type": "bindl",
       "mods": "",
       "key": "Caps_Lock",
