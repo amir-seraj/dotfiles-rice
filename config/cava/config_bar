@@ -1,0 +1,24 @@
+# cava config used by the topbar visualizer (raw ASCII output to stdout)
+[general]
+framerate = 30
+bars = 12
+sensitivity = 90
+autosens = 1
+overshoot = 20
+
+[input]
+method = pulse
+source = auto
+
+[output]
+method = raw
+raw_target = /dev/stdout
+data_format = ascii
+ascii_max_range = 100
+bar_delim = 59
+frame_delim = 10
+
+[smoothing]
+monstercat = 1
+gravity = 130
+noise_reduction = 60

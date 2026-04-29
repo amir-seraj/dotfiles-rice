@@ -1,0 +1,10 @@
+*.log
+*.tmp
+*~
+.DS_Store
+
+# secrets
+.env
+*.env
+*credentials*
+*token*
