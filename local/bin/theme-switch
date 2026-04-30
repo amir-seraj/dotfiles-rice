@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# theme-switch — flip the active rice theme symlink.
+# Usage: theme-switch <mono|darko>
+#        theme-switch              # report current
+set -euo pipefail
+
+THEMES_DIR="$HOME/.config/themes"
+ACTIVE="$THEMES_DIR/active"
+
+if [[ $# -eq 0 ]]; then
+    if [[ -L "$ACTIVE" ]]; then
+        echo "active: $(basename "$(readlink "$ACTIVE")")"
+    else
+        echo "active: <none — run 'theme-switch mono' or 'theme-switch darko'>"
+    fi
+    exit 0
+fi
+
+target="$1"
+target_dir="$THEMES_DIR/$target"
+
+if [[ ! -d "$target_dir" ]]; then
+    echo "error: $target_dir does not exist" >&2
+    exit 1
+fi
+
+ln -sfn "$target" "$ACTIVE"
+echo "active: $target"
