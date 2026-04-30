@@ -1,0 +1,10 @@
+{
+  "name": "mono",
+  "display_name": "Monochrome",
+  "icon_theme": "Papirus-Dark",
+  "cursor_theme": "Bibata-Modern-Classic",
+  "gtk_theme": "adw-gtk3-dark",
+  "kvantum_theme": "kvantum-default",
+  "color_scheme": "prefer-dark",
+  "matugen_scheme": "scheme-tonal-spot"
+}
