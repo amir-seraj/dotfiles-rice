@@ -8,3 +8,10 @@
 *.env
 *credentials*
 *token*
+
+# brainstorm session files
+.superpowers/
+
+# theme-switch runtime state (mutates on every switch)
+config/themes/active
+config/themes/active.name
