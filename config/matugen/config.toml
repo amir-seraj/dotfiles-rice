@@ -52,3 +52,7 @@ output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 [templates.hyprland]
 input_path = '~/.config/matugen/templates/hyprland.conf.template'
 output_path = '~/.config/hypr/colors.conf'
+
+[templates.yazi]
+input_path = "~/.config/matugen/templates/yazi-theme.toml.template"
+output_path = "~/.config/yazi/theme.toml"
