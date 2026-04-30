@@ -33,6 +33,26 @@ theme-switch mono >/dev/null
 active=$(basename "$(readlink "$HOME/.config/themes/active")")
 assert_eq "active==mono after switch" mono "$active"
 
+# --- Phase 1 tests ---
+assert "matugen templates is a symlink" test -L "$HOME/.config/matugen/templates"
+
+theme-switch mono >/dev/null
+linked=$(readlink "$HOME/.config/matugen/templates")
+assert_eq "templates -> active/matugen-templates" "$HOME/.config/themes/active/matugen-templates" "$linked"
+
+assert "active.name file written" test -f "$HOME/.config/themes/active.name"
+assert_eq "active.name == mono" "mono" "$(cat "$HOME/.config/themes/active.name" 2>/dev/null)"
+
+# darko render produces portal-magenta active border
+theme-switch darko >/dev/null
+border=$(grep -E '^\$active_border' "$HOME/.config/hypr/colors.conf" 2>/dev/null | grep -oiE '[0-9a-f]{6,8}' | head -1 || true)
+assert_eq "darko active border == 7a4a8aff" "7a4a8aff" "${border,,}"
+
+# mono render produces mango active border
+theme-switch mono >/dev/null
+border=$(grep -E '^\$active_border' "$HOME/.config/hypr/colors.conf" 2>/dev/null | grep -oiE '[0-9a-f]{6,8}' | head -1 || true)
+assert_eq "mono active border == ffae42ff" "ffae42ff" "${border,,}"
+
 # --- summary ---
 echo
 if [[ $failed -eq 0 ]]; then
