@@ -1,0 +1,11 @@
+{
+  "name": "darko",
+  "display_name": "Donnie Darko",
+  "icon_theme": "Papirus-Darko",
+  "cursor_theme": "Bibata-Modern-Classic",
+  "gtk_theme": "adw-gtk3-dark",
+  "kvantum_theme": "darko-kv",
+  "color_scheme": "prefer-dark",
+  "matugen_scheme": "scheme-tonal-spot",
+  "countdown_end": "2026-05-28T06:42:12+02:00"
+}
