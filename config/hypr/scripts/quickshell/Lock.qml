@@ -30,6 +30,30 @@ ShellRoot {
     readonly property color blue: _theme.blue
     readonly property color green: _theme.green
 
+    // --- Darko theme integration ---
+    // Exported by lock.sh from ~/.config/themes/active.name.
+    // When active theme is "darko", the screenRoot overlay near the bottom of
+    // this file shows the DARKO wordmark, "wake up donnie" prompt, and
+    // countdown widget ticking toward the end of the world.
+    readonly property string activeTheme: Quickshell.env("DARKO_THEME") || "mono"
+    readonly property string countdownEnd: Quickshell.env("DARKO_COUNTDOWN_END") || "2026-05-28T06:42:12+02:00"
+
+    function computeCountdown() {
+        var now = new Date();
+        var end = new Date(root.countdownEnd);
+        var diff = Math.max(0, Math.floor((end - now) / 1000));
+        if (diff === 0) {
+            // loop: end-date 28d6h42m12s in the future from now
+            end = new Date(now.getTime() + (28*86400 + 6*3600 + 42*60 + 12) * 1000);
+            diff = Math.floor((end - now) / 1000);
+        }
+        var days = Math.floor(diff / 86400); diff %= 86400;
+        var hrs = Math.floor(diff / 3600); diff %= 3600;
+        var mins = Math.floor(diff / 60); var secs = diff % 60;
+        function pad(n) { return n < 10 ? "0" + n : "" + n; }
+        return pad(days) + ":" + pad(hrs) + ":" + pad(mins) + ":" + pad(secs);
+    }
+
     // Persistent Settings
     Settings {
         id: lockSettings
@@ -1233,6 +1257,81 @@ ShellRoot {
 
                         PropertyAction { target: screenRoot; property: "isPlayingIntro"; value: false }
                         ScriptAction { script: { inputField.text = ""; inputField.forceActiveFocus(); } }
+                    }
+                }
+
+                // ---------------------------------------------------------
+                // DARKO OVERLAY — only visible when active theme is "darko"
+                // Renders DARKO wordmark, "wake up donnie", and the
+                // end-of-the-world countdown ticking toward
+                // root.countdownEnd. Sits above all other lock UI so it
+                // reads through any background.
+                // ---------------------------------------------------------
+                Item {
+                    id: darkoOverlay
+                    anchors.fill: parent
+                    visible: root.activeTheme === "darko"
+                    z: 999
+
+                    Text {
+                        id: darkoWordmark
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.verticalCenterOffset: -180 * screenRoot.sc
+                        text: "DARKO"
+                        font.family: "serif"
+                        font.pixelSize: 14 * screenRoot.sc
+                        font.letterSpacing: 8 * screenRoot.sc
+                        color: root.text
+                        opacity: 0.5
+                    }
+
+                    Column {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 220 * screenRoot.sc
+                        spacing: 6 * screenRoot.sc
+
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "END OF THE WORLD IN"
+                            font.family: "monospace"
+                            font.pixelSize: 11 * screenRoot.sc
+                            font.letterSpacing: 3 * screenRoot.sc
+                            color: root.peach
+                            opacity: 0.7
+                        }
+
+                        Text {
+                            id: countdownValue
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "00:00:00:00"
+                            font.family: "monospace"
+                            font.pixelSize: 32 * screenRoot.sc
+                            font.letterSpacing: 8 * screenRoot.sc
+                            color: root.peach
+
+                            Timer {
+                                interval: 1000
+                                running: darkoOverlay.visible
+                                repeat: true
+                                triggeredOnStart: true
+                                onTriggered: countdownValue.text = root.computeCountdown()
+                            }
+                        }
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 130 * screenRoot.sc
+                        text: "— wake up, donnie —"
+                        font.family: "serif"
+                        font.italic: true
+                        font.pixelSize: 24 * screenRoot.sc
+                        font.letterSpacing: 4 * screenRoot.sc
+                        color: root.text
+                        opacity: 0.85
                     }
                 }
             }
