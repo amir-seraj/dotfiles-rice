@@ -1,28 +1,71 @@
 #!/usr/bin/env bash
-# theme-switch — flip the active rice theme symlink.
+# theme-switch — flip the active rice theme and regenerate matugen outputs.
 # Usage: theme-switch <mono|darko>
-#        theme-switch              # report current
+#        theme-switch                # report current
 set -euo pipefail
 
 THEMES_DIR="$HOME/.config/themes"
 ACTIVE="$THEMES_DIR/active"
+MATUGEN_TEMPLATES="$HOME/.config/matugen/templates"
 
 if [[ $# -eq 0 ]]; then
     if [[ -L "$ACTIVE" ]]; then
         echo "active: $(basename "$(readlink "$ACTIVE")")"
     else
-        echo "active: <none — run 'theme-switch mono' or 'theme-switch darko'>"
+        echo "active: <none>"
     fi
     exit 0
 fi
 
 target="$1"
 target_dir="$THEMES_DIR/$target"
+[[ -d "$target_dir" ]] || { echo "error: $target_dir does not exist" >&2; exit 1; }
 
-if [[ ! -d "$target_dir" ]]; then
-    echo "error: $target_dir does not exist" >&2
-    exit 1
+# 1. flip active symlink + record name (consumed by Lock.qml etc.)
+ln -sfn "$target" "$ACTIVE"
+echo "$target" > "$THEMES_DIR/active.name"
+
+# 2. swap matugen templates: backup originals once, then symlink the active set.
+if [[ ! -L "$MATUGEN_TEMPLATES" ]] && [[ ! -d "${MATUGEN_TEMPLATES}.orig" ]]; then
+    mv "$MATUGEN_TEMPLATES" "${MATUGEN_TEMPLATES}.orig"
+fi
+ln -sfn "$ACTIVE/matugen-templates" "$MATUGEN_TEMPLATES"
+
+# 3. regenerate via matugen using the theme's seed
+seed="$(cat "$ACTIVE/seed.txt")"
+scheme="$(jq -r '.matugen_scheme // "scheme-tonal-spot"' "$ACTIVE/manifest.json")"
+
+resolve_wallpaper() {
+    # awww query format: "<output>: <res>, scale: <n>, currently displaying: <kind>: <value>"
+    local line kind value
+    line="$(awww query 2>/dev/null | head -1 || true)"
+    [[ -z "$line" ]] && return 1
+    kind="$(echo "$line" | sed -nE 's/.*currently displaying: ([a-z]+):.*/\1/p')"
+    value="$(echo "$line" | sed -nE 's/.*currently displaying: [a-z]+: (.*)$/\1/p')"
+    [[ "$kind" == "image" ]] && [[ -f "$value" ]] && { echo "$value"; return 0; }
+    return 1
+}
+
+if [[ "$seed" == "auto" ]]; then
+    if wallpaper="$(resolve_wallpaper)"; then
+        matugen image "$wallpaper" -t "$scheme" --prefer saturation
+    else
+        # fallback 1: any image in the active theme's wallpapers/
+        wallpaper="$(find "$ACTIVE/wallpapers" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | head -1 || true)"
+        if [[ -n "$wallpaper" ]] && [[ -f "$wallpaper" ]]; then
+            matugen image "$wallpaper" -t "$scheme" --prefer saturation
+        else
+            echo "warn: seed=auto but no wallpaper found; skipping matugen render" >&2
+        fi
+    fi
+else
+    matugen color hex "$seed" -t "$scheme"
 fi
 
-ln -sfn "$target" "$ACTIVE"
-echo "active: $target"
+# 4. run the existing post-process / live-reload helper (kitty, cava, swayosd, gtk hack)
+~/.config/hypr/scripts/quickshell/wallpaper/matugen_reload.sh
+
+# 5. reload Hyprland (border colors, window rules)
+hyprctl reload >/dev/null 2>&1 || true
+
+echo "active: $target  (matugen rendered, live surfaces reloaded)"
