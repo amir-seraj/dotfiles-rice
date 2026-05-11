@@ -15,3 +15,7 @@
 # theme-switch runtime state (mutates on every switch)
 config/themes/active
 config/themes/active.name
+
+# Python cache
+__pycache__/
+*.py[cod]
