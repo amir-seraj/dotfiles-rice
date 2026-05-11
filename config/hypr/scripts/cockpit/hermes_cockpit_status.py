@@ -89,7 +89,7 @@ def read_json(path: Path) -> dict[str, Any]:
     return {}
 
 
-def run_command(args: list[str], timeout: float = 1.5) -> str:
+def run_command(args: list[str], timeout: float = 1.5, cwd: Path | None = None) -> str:
     try:
         result = subprocess.run(
             args,
@@ -98,10 +98,24 @@ def run_command(args: list[str], timeout: float = 1.5) -> str:
             stderr=subprocess.DEVNULL,
             text=True,
             timeout=timeout,
+            cwd=str(cwd) if cwd else None,
         )
     except (OSError, subprocess.SubprocessError):
         return ""
     return result.stdout.strip()
+
+
+def safe_int(value: Any, default: int = 0, minimum: int | None = None, maximum: int | None = None) -> int:
+    try:
+        result = int(value)
+    except (TypeError, ValueError):
+        result = default
+    if minimum is not None:
+        result = max(minimum, result)
+    if maximum is not None:
+        result = min(maximum, result)
+    return result
+
 
 
 def proc_stat_cpu() -> tuple[int, int]:
@@ -172,22 +186,61 @@ def status_system() -> dict[str, Any]:
     return payload
 
 
+def movement_timer_summary() -> dict[str, Any]:
+    state = read_json(Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))) / "qs-move-timer" / "state.json")
+    now_epoch = int(time.time())
+    mode = safe_text(state.get("mode", "unknown"), 16)
+    interval_minutes = safe_int(state.get("interval_minutes"), 45, 1, 180)
+    break_minutes = safe_int(state.get("break_minutes"), 5, 1, 180)
+    end_at = safe_int(state.get("end_at"), 0, 0)
+    remaining = max(0, end_at - now_epoch) if mode != "paused" else safe_int(state.get("paused_remaining"), 0, 0)
+    overdue = max(0, now_epoch - end_at) if mode not in {"paused", "break"} and end_at else 0
+    daily_cycles = state.get("daily_cycles") if isinstance(state.get("daily_cycles"), dict) else {}
+    today = datetime.now().date().isoformat()
+    return {
+        "status": "ready" if state else "not-initialized",
+        "mode": mode,
+        "move_due": bool(overdue > 0),
+        "remaining_seconds": remaining,
+        "overdue_seconds": overdue,
+        "next_check_epoch": end_at if end_at else None,
+        "interval_minutes": interval_minutes,
+        "break_minutes": break_minutes,
+        "cycles_total": safe_int(state.get("cycles"), 0, 0),
+        "cycles_today": safe_int(daily_cycles.get(today, state.get("daily_cycles_today") or 0), 0, 0),
+        "current_streak_days": safe_int(state.get("current_streak_days"), 0, 0),
+        "best_streak_days": safe_int(state.get("best_streak_days"), 0, 0),
+        "last_cycle_date": safe_text(state.get("last_cycle_date", ""), 16),
+    }
+
+
+def focus_summary() -> dict[str, Any]:
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR") or str(Path.home() / ".cache")) / "focustime_state.json"
+    fallback = Path.home() / ".cache" / "focustime" / "focustime_state.json"
+    state = read_json(runtime) or read_json(fallback)
+    total_seconds = safe_int(state.get("total"), 0, 0)
+    return {
+        "status": "ready" if state else "not-initialized",
+        "session_active": bool(state),
+        "minutes_today": total_seconds // 60,
+        "hours_today": round(total_seconds / 3600, 2),
+        "tracked_apps_count": len(state.get("apps") or []) if isinstance(state.get("apps"), list) else 0,
+        "peak_usage_window": REDACTED if state.get("peak_usage_str") else "",
+    }
+
+
 def status_health() -> dict[str, Any]:
     payload = base_payload("health")
-    now = int(time.time())
     payload.update(
         {
-            "movement": {
-                "status": "sample",
-                "move_due": False,
-                "next_check_epoch": now + 1800,
+            "movement": movement_timer_summary(),
+            "focus": focus_summary(),
+            "spine": {
+                "status": "guarded",
+                "reminder": "movement-cycles-only",
+                "raw_notes_included": False,
             },
-            "focus": {
-                "status": "sample",
-                "session_active": False,
-                "minutes_today": 0,
-            },
-            "safe_summary": "Sample health state only; no health notes or bodies read.",
+            "safe_summary": "Health state is aggregate-only; no health notes, bodies, window titles, or app names emitted.",
         }
     )
     return payload
@@ -208,9 +261,12 @@ def status_agents() -> dict[str, Any]:
             "counts": {
                 "matching_processes": len(agent_names),
                 "by_safe_command": safe_counts,
+                "safe_command_kinds": len(safe_counts),
             },
             "active": bool(agent_names),
-            "safe_summary": "Agent status uses process names only; no transcripts, prompts, or args emitted.",
+            "project": {"status": "aggregate-only", "known_count": status_projects()["counts"]["git_repositories_seen"]},
+            "cache": {"status": "writable", "path_emitted": False},
+            "safe_summary": "Agent HUD uses process names and aggregate counts only; no transcripts, prompts, args, or raw client text emitted.",
         }
     )
     return payload
@@ -235,9 +291,14 @@ def status_obsidian() -> dict[str, Any]:
             continue
     payload.update(
         {
-            "counts": {"candidate_roots_checked": checked_roots, "markdown_notes_seen": md_count},
+            "counts": {
+                "candidate_roots_checked": checked_roots,
+                "markdown_notes_seen": md_count,
+                "recent_note_bodies_included": 0,
+            },
             "recent_notes": [],
-            "safe_summary": "Obsidian status is count-only; no note names or bodies emitted.",
+            "links": [{"label": "Open Obsidian", "url": "obsidian://open"}],
+            "safe_summary": "Obsidian status is count/link-only; no note names, note paths, note bodies, or excerpts emitted.",
         }
     )
     return payload
@@ -294,13 +355,89 @@ def status_music() -> dict[str, Any]:
     return payload
 
 
+def git_porcelain_counts(repo: Path) -> dict[str, Any]:
+    output = run_command(["git", "status", "--porcelain=v1"], timeout=1.5, cwd=repo)
+    changed = staged = unstaged = untracked = 0
+    for line in output.splitlines():
+        if not line:
+            continue
+        changed += 1
+        x = line[0] if len(line) > 0 else " "
+        y = line[1] if len(line) > 1 else " "
+        if line.startswith("??"):
+            untracked += 1
+        else:
+            if x != " ":
+                staged += 1
+            if y != " ":
+                unstaged += 1
+    return {"changed_files": changed, "staged_files": staged, "unstaged_files": unstaged, "untracked_files": untracked}
+
+
+def git_ahead_behind(repo: Path) -> dict[str, Any]:
+    upstream = run_command(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"], timeout=1.0, cwd=repo)
+    if not upstream:
+        return {"upstream_present": False, "ahead": 0, "behind": 0}
+    counts = run_command(["git", "rev-list", "--left-right", "--count", "@{upstream}...HEAD"], timeout=1.5, cwd=repo).split()
+    try:
+        behind, ahead = int(counts[0]), int(counts[1])
+    except (IndexError, ValueError):
+        behind, ahead = 0, 0
+    return {"upstream_present": True, "ahead": ahead, "behind": behind}
+
+
+def gh_count(repo: Path, item: str) -> int | None:
+    if not shutil.which("gh"):
+        return None
+    output = run_command(["gh", item, "list", "--state", "open", "--limit", "100", "--json", "number"], timeout=3.0, cwd=repo)
+    if not output:
+        return None
+    try:
+        data = json.loads(output)
+    except json.JSONDecodeError:
+        return None
+    return len(data) if isinstance(data, list) else None
+
+
+def status_devlab() -> dict[str, Any]:
+    payload = base_payload("devlab")
+    repo = Path(os.environ.get("HERMES_COCKPIT_REPO", str(Path.home() / "dotfiles-rice")))
+    present = (repo / ".git").exists()
+    git_counts = {"changed_files": 0, "staged_files": 0, "unstaged_files": 0, "untracked_files": 0}
+    ahead_behind = {"upstream_present": False, "ahead": 0, "behind": 0}
+    if present:
+        git_counts = git_porcelain_counts(repo)
+        ahead_behind = git_ahead_behind(repo)
+    prs = gh_count(repo, "pr") if present else None
+    issues = gh_count(repo, "issue") if present else None
+    payload.update(
+        {
+            "git": {
+                "present": present,
+                "dirty": bool(git_counts["changed_files"]),
+                **git_counts,
+                **ahead_behind,
+            },
+            "github": {
+                "status": "available" if (prs is not None or issues is not None) else ("gh-unavailable" if not shutil.which("gh") else "not-authenticated-or-no-repo"),
+                "open_prs": prs,
+                "open_issues": issues,
+            },
+            "safe_summary": "Dev Lab emits aggregate git/GitHub counts only; no filenames, diffs, branch names, issue titles, remotes, or paths emitted.",
+        }
+    )
+    return payload
+
+
 def status_sentinel() -> dict[str, Any]:
     payload = base_payload("sentinel")
     payload.update(
         {
             "mode": "sample",
             "signals": {"attention": "nominal", "risk": "unknown", "privacy": "protected"},
-            "safe_summary": "Sentinel placeholder contains no sensor payloads or raw observations.",
+            "next_action": {"status": "hook-ready", "raw_text_included": False},
+            "hooks": {"timekeeper": "available", "work_report": "available", "innovina_dashboard": "aggregate-only"},
+            "safe_summary": "Sentinel contains coarse hook states only; no sensor payloads, raw observations, notes, transcripts, or client text emitted.",
         }
     )
     return payload
@@ -330,6 +467,7 @@ COMMANDS.update(
         "agents": status_agents,
         "obsidian": status_obsidian,
         "projects": status_projects,
+        "devlab": status_devlab,
         "music": status_music,
         "sentinel": status_sentinel,
         "ritual": status_ritual,

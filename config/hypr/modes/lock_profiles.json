@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "default": "standard",
+  "default_private": "privacy-solid",
+  "profiles": {
+    "standard": {
+      "label": "Standard blur/screenshot lock",
+      "allow_screenshot": true,
+      "background": "/tmp/lock_bg.png",
+      "show_weather": true,
+      "show_user_face": true,
+      "mascot_mood": "idle"
+    },
+    "privacy-solid": {
+      "label": "Privacy solid lock",
+      "allow_screenshot": false,
+      "background": "/tmp/lock_bg.png",
+      "show_weather": false,
+      "show_user_face": false,
+      "mascot_mood": "privacy"
+    },
+    "travel-minimal": {
+      "label": "Travel minimal lock",
+      "allow_screenshot": false,
+      "background": "/tmp/lock_bg.png",
+      "show_weather": false,
+      "show_user_face": false,
+      "mascot_mood": "focus"
+    }
+  }
+}

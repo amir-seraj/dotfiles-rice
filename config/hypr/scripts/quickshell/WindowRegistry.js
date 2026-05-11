@@ -42,6 +42,18 @@ function getLayout(name, mx, my, mw, mh, userScale) {
         // --- GitHub ---
         "github":    { w: s(1200, scale), h: s(820, scale), rx: Math.floor((mw/2)-(s(1200, scale)/2)), ry: Math.floor((mh/2)-(s(820, scale)/2)), comp: "github/GitHubPopup.qml" },
 
+        // --- X Operator Cockpits ---
+        "health":    { w: s(880, scale), h: s(680, scale), rx: Math.floor((mw/2)-(s(880, scale)/2)), ry: Math.floor((mh/2)-(s(680, scale)/2)), comp: "health/HealthPopup.qml" },
+        "obsidian":  { w: s(900, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(900, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "obsidian/ObsidianCockpitPopup.qml" },
+        "agents":    { w: s(900, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(900, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "agents/AgentHudPopup.qml" },
+        "devlab":    { w: s(960, scale), h: s(720, scale), rx: Math.floor((mw/2)-(s(960, scale)/2)), ry: Math.floor((mh/2)-(s(720, scale)/2)), comp: "devlab/DevLabPopup.qml" },
+        "sentinel":  { w: s(960, scale), h: s(720, scale), rx: Math.floor((mw/2)-(s(960, scale)/2)), ry: Math.floor((mh/2)-(s(720, scale)/2)), comp: "sentinel/SentinelPopup.qml" },
+        "commandpalette": { w: s(900, scale), h: s(720, scale), rx: Math.floor((mw/2)-(s(900, scale)/2)), ry: Math.floor((mh/2)-(s(720, scale)/2)), comp: "commandpalette/CommandPalettePopup.qml" },
+        "systemcockpit": { w: s(900, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(900, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "system/SystemCockpitPopup.qml" },
+        "musicdeck": { w: s(820, scale), h: s(660, scale), rx: Math.floor((mw/2)-(s(820, scale)/2)), ry: Math.floor((mh/2)-(s(660, scale)/2)), comp: "musicdeck/MusicDeckPopup.qml" },
+        "bootritual": { w: s(860, scale), h: s(660, scale), rx: Math.floor((mw/2)-(s(860, scale)/2)), ry: Math.floor((mh/2)-(s(660, scale)/2)), comp: "boot/BootRitualPopup.qml" },
+        "themepicker": { w: s(860, scale), h: s(660, scale), rx: Math.floor((mw/2)-(s(860, scale)/2)), ry: Math.floor((mh/2)-(s(660, scale)/2)), comp: "themes/ThemePickerPopup.qml" },
+
         // --- Body / health utility ---
         "movetimer": { w: s(560, scale), h: s(620, scale), rx: Math.floor((mw/2)-(s(560, scale)/2)), ry: Math.floor((mh/2)-(s(620, scale)/2)), comp: "movetimer/MoveTimerPopup.qml" },
 

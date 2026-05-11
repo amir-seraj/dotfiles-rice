@@ -14,7 +14,7 @@ Rectangle {
     implicitWidth: layoutWidth
     implicitHeight: layoutHeight
 
-    property var timerData: ({ label: "45:00", mode: "focus", due: false, progress: 0, cycles: 0, interval_minutes: 45, break_minutes: 5, phase_label: "Focus posture", overdue_label: "00:00", snoozes: 0 })
+    property var timerData: ({ label: "45:00", mode: "focus", due: false, progress: 0, cycles: 0, daily_cycles_today: 0, current_streak_days: 0, best_streak_days: 0, interval_minutes: 45, break_minutes: 5, phase_label: "Focus posture", overdue_label: "00:00", snoozes: 0 })
     property string errorMsg: ""
     readonly property bool isDue: timerData.due === true
     readonly property bool isBreak: timerData.mode === "break"
@@ -181,15 +181,30 @@ Rectangle {
         border.width: 1
         border.color: "#30203b"
 
-        Text {
+        Column {
             anchors.fill: parent
-            anchors.margins: 16
-            text: root.isDue ? "Do this: stand up, walk 2-5 min, hip hinge, gentle McGill-style reset. No hero stretching." : "Every 45 minutes: move your body before the L4/L5 tax collector arrives. Break target: 5 minutes."
-            color: "#cfc3dc"
-            wrapMode: Text.WordWrap
-            font.family: "JetBrains Mono"
-            font.pixelSize: 12
-            lineHeight: 1.18
+            anchors.margins: 14
+            spacing: 7
+
+            Text {
+                width: parent.width
+                text: root.isDue ? "Do this: stand up, walk 2-5 min, hip hinge, gentle McGill-style reset. No hero stretching." : "Every 45 minutes: move your body before the L4/L5 tax collector arrives. Break target: 5 minutes."
+                color: "#cfc3dc"
+                wrapMode: Text.WordWrap
+                font.family: "JetBrains Mono"
+                font.pixelSize: 12
+                lineHeight: 1.18
+            }
+
+            Text {
+                width: parent.width
+                text: "today " + (root.timerData.daily_cycles_today || 0) + "  •  streak " + (root.timerData.current_streak_days || 0) + "d  •  best " + (root.timerData.best_streak_days || 0) + "d  •  total " + (root.timerData.cycles || 0)
+                color: root.accent
+                elide: Text.ElideRight
+                font.family: "JetBrains Mono"
+                font.pixelSize: 11
+                font.bold: true
+            }
         }
     }
 

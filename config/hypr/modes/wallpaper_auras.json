@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "default_aura": "noir",
+  "default_aura": "noir-purple",
   "auras": {
     "noir": {
       "label": "Noir Glass",
@@ -64,6 +64,51 @@
       "background": "solid-black",
       "intensity": "low",
       "motion": "none"
+    },
+    "noir-purple": {
+      "label": "Noir Purple",
+      "accent": "#cba6f7",
+      "background": "purple-glass",
+      "intensity": "medium",
+      "motion": "slow",
+      "theme": "noir-purple",
+      "privacy": false
+    },
+    "matrix-green": {
+      "label": "Matrix Green",
+      "accent": "#a6e3a1",
+      "background": "scanline-dark",
+      "intensity": "high",
+      "motion": "scan",
+      "theme": "matrix-green",
+      "privacy": false
+    },
+    "sentinel-olive": {
+      "label": "Sentinel Olive",
+      "accent": "#a6b37d",
+      "background": "olive-radar",
+      "intensity": "medium",
+      "motion": "pulse",
+      "theme": "sentinel-olive",
+      "privacy": false
+    },
+    "private-red": {
+      "label": "Private Red",
+      "accent": "#f38ba8",
+      "background": "solid-private",
+      "intensity": "low",
+      "motion": "none",
+      "theme": "private-red",
+      "privacy": true
+    },
+    "ocean-cyan": {
+      "label": "Ocean Cyan",
+      "accent": "#94e2d5",
+      "background": "cyan-depth",
+      "intensity": "medium",
+      "motion": "wave",
+      "theme": "ocean-cyan",
+      "privacy": false
     }
   }
 }

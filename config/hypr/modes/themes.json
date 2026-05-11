@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "default_theme": "xoperator",
+  "default_theme": "noir-purple",
   "themes": {
     "xoperator": {
       "label": "X Operator Noir",
@@ -41,6 +41,62 @@
       "radius": 16,
       "blur": true,
       "shadow": true
+    },
+    "noir-purple": {
+      "label": "Noir Purple",
+      "palette": "catppuccin-mocha",
+      "accent": "#cba6f7",
+      "surface": "#11111b",
+      "text": "#cdd6f4",
+      "radius": 18,
+      "blur": true,
+      "shadow": true,
+      "mascot_mood": "idle"
+    },
+    "matrix-green": {
+      "label": "Matrix Green",
+      "palette": "matrix-dark",
+      "accent": "#a6e3a1",
+      "surface": "#07110a",
+      "text": "#d4ffd0",
+      "radius": 12,
+      "blur": false,
+      "shadow": true,
+      "mascot_mood": "agent_running"
+    },
+    "sentinel-olive": {
+      "label": "Sentinel Olive",
+      "palette": "olive-dark",
+      "accent": "#a6b37d",
+      "surface": "#10130c",
+      "text": "#e5e8d4",
+      "radius": 14,
+      "blur": true,
+      "shadow": true,
+      "mascot_mood": "focus"
+    },
+    "private-red": {
+      "label": "Private Red",
+      "palette": "privacy-dark",
+      "accent": "#f38ba8",
+      "surface": "#090305",
+      "text": "#ffd9df",
+      "radius": 10,
+      "blur": false,
+      "shadow": false,
+      "privacy": true,
+      "mascot_mood": "privacy"
+    },
+    "ocean-cyan": {
+      "label": "Ocean Cyan",
+      "palette": "cyan-dark",
+      "accent": "#94e2d5",
+      "surface": "#07131a",
+      "text": "#d7fffb",
+      "radius": 20,
+      "blur": true,
+      "shadow": true,
+      "mascot_mood": "music"
     }
   }
 }
