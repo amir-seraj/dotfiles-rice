@@ -39,6 +39,9 @@ function getLayout(name, mx, my, mw, mh, userScale) {
         // --- GitHub ---
         "github":    { w: s(1200, scale), h: s(820, scale), rx: Math.floor((mw/2)-(s(1200, scale)/2)), ry: Math.floor((mh/2)-(s(820, scale)/2)), comp: "github/GitHubPopup.qml" },
 
+        // --- Body / health utility ---
+        "movetimer": { w: s(560, scale), h: s(620, scale), rx: Math.floor((mw/2)-(s(560, scale)/2)), ry: Math.floor((mh/2)-(s(620, scale)/2)), comp: "movetimer/MoveTimerPopup.qml" },
+
         // --- Central Standard Tools ---
         "applauncher": { w: s(800, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(800, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "applauncher/appLauncher.qml" },
         "clipboard": { w: s(800, scale), h: s(700, scale), rx: Math.floor((mw/2)-(s(800, scale)/2)), ry: Math.floor((mh/2)-(s(700, scale)/2)), comp: "clipboard/ClipboardManager.qml" },

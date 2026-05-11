@@ -193,7 +193,7 @@ PanelWindow {
     }
 
     function getLayout(name) {
-        return Registry.getLayout(name, 0, 0, masterWindow.width, masterWindow.height, masterWindow.globalUiScale);
+        return Registry.getLayout(name, 0, 0, masterWindow.screen.width, masterWindow.screen.height, masterWindow.globalUiScale);
     }
 
     Connections {
@@ -453,10 +453,14 @@ PanelWindow {
     }   
     Timer {
         id: delayedClear
-        interval: masterWindow.morphDuration 
+        interval: masterWindow.morphDuration
         onTriggered: {
-            masterWindow.currentActive = "hidden";
-            widgetStack.clear();
+            // Guard against close/open races: if a new widget became visible while the
+            // close animation timer was pending, do not clear the fresh StackView item.
+            if (!masterWindow.isVisible) {
+                masterWindow.currentActive = "hidden";
+                widgetStack.clear();
+            }
             masterWindow.disableMorph = false;
         }
     }

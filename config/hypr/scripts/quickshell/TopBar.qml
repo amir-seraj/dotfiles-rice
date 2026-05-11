@@ -236,6 +236,13 @@ Variants {
             property string batPercent: "100%"
             property string batIcon: "󰁹"
             property string batStatus: "Unknown"
+
+            property string moveTimerLabel: "45:00"
+            property string moveTimerMode: "focus"
+            property bool moveTimerDue: false
+            property real moveTimerProgress: 0.0
+            property string moveTimerPhase: "Focus posture"
+            property color moveTimerAccent: moveTimerDue ? mocha.red : (moveTimerMode === "break" ? mocha.green : mocha.mauve)
             
             property string kbLayout: "us"
             
@@ -418,6 +425,37 @@ Variants {
             }
 
             Process {
+                id: moveTimerPoller
+                running: true
+                command: ["python3", Quickshell.env("HOME") + "/.config/hypr/scripts/quickshell/movetimer/move_timer.py", "status"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        let txt = this.text.trim();
+                        if (txt !== "") {
+                            try {
+                                let data = JSON.parse(txt);
+                                barWindow.moveTimerLabel = data.label || "45:00";
+                                barWindow.moveTimerMode = data.mode || "focus";
+                                barWindow.moveTimerDue = data.due === true;
+                                barWindow.moveTimerProgress = data.progress || 0.0;
+                                barWindow.moveTimerPhase = data.phase_label || "Focus posture";
+                            } catch(e) {}
+                        }
+                    }
+                }
+            }
+
+            Timer {
+                interval: 1000
+                running: true
+                repeat: true
+                onTriggered: {
+                    moveTimerPoller.running = false;
+                    moveTimerPoller.running = true;
+                }
+            }
+
+            Process {
                 id: kbPoller; running: true
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/kb_fetch.sh"]
                 stdout: StdioCollector {
@@ -592,14 +630,14 @@ Variants {
                         onTriggered: leftContent.showLayout = true
                     }
 
-                    width: leftLayout.width + barWindow.s(16)
+                    width: leftLayout.width + barWindow.s(20)
 
                     Row {
                         id: leftLayout
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        anchors.leftMargin: barWindow.s(8)
-                        spacing: barWindow.s(4)
+                        anchors.leftMargin: barWindow.s(10)
+                        spacing: barWindow.s(7)
                         
                         property int pillHeight: barWindow.s(34)
 
@@ -766,8 +804,8 @@ Variants {
                     
                     width: workspacesModel.count > 0 ? wsLayout.implicitWidth + barWindow.s(20) : 0
                     
-                    property real defaultX: leftContent.x + leftContent.width + barWindow.s(4)
-                    property real settingsX: mediaBox.settingsX - width - (width > 0 ? barWindow.s(4) : 0)
+                    property real defaultX: leftContent.x + leftContent.width + barWindow.s(7)
+                    property real settingsX: mediaBox.settingsX - width - (width > 0 ? barWindow.s(7) : 0)
                                         
                     x: defaultX + (settingsX - defaultX) * barWindow.settingsSlideProgress
 
@@ -1190,6 +1228,55 @@ Variants {
                     }
 
                     Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+
+                    Rectangle {
+                        id: moveTimerButton
+                        property bool isHovered: moveTimerMouse.containsMouse
+                        height: barWindow.barHeight
+                        width: moveTimerLayout.implicitWidth + barWindow.s(24)
+                        radius: barWindow.s(14)
+                        border.width: 1
+                        border.color: Qt.rgba(barWindow.moveTimerAccent.r, barWindow.moveTimerAccent.g, barWindow.moveTimerAccent.b, isHovered || barWindow.moveTimerDue ? 0.30 : 0.12)
+                        color: isHovered ? Qt.rgba(mocha.surface1.r, mocha.surface1.g, mocha.surface1.b, 0.95) : Qt.rgba(mocha.base.r, mocha.base.g, mocha.base.b, 0.75)
+                        clip: true
+
+                        Behavior on color { ColorAnimation { duration: 180 } }
+                        Behavior on border.color { ColorAnimation { duration: 180 } }
+
+                        SequentialAnimation on scale {
+                            running: barWindow.moveTimerDue && !moveTimerButton.isHovered
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1.04; duration: 700; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: 1.0; duration: 700; easing.type: Easing.InOutSine }
+                        }
+
+                        RowLayout {
+                            id: moveTimerLayout
+                            anchors.centerIn: parent
+                            spacing: barWindow.s(7)
+
+                            Text {
+                                text: barWindow.moveTimerDue ? "󰐃" : (barWindow.moveTimerMode === "break" ? "󰝊" : "󰔟")
+                                font.family: "Iosevka Nerd Font"
+                                font.pixelSize: barWindow.s(18)
+                                color: barWindow.moveTimerAccent
+                            }
+                            Text {
+                                text: barWindow.moveTimerDue ? "MOVE" : barWindow.moveTimerLabel
+                                font.family: "JetBrains Mono"
+                                font.pixelSize: barWindow.s(12)
+                                font.weight: Font.Black
+                                color: barWindow.moveTimerDue ? mocha.red : mocha.text
+                            }
+                        }
+
+                        MouseArea {
+                            id: moveTimerMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle movetimer"])
+                        }
+                    }
 
                     Rectangle {
                         height: barWindow.barHeight

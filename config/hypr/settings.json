@@ -1,10 +1,10 @@
 {
-  "uiScale": 0.8,
+  "uiScale": 0.9,
   "openGuideAtStartup": true,
-  "topbarHelpIcon": true,
+  "topbarHelpIcon": false,
   "wallpaperDir": "/home/amir/Pictures/Wallpapers",
-  "language": "us,ir",
-  "kbOptions": "grp:win_space_toggle",
+  "language": "us,ir,it",
+  "kbOptions": "grp:alt_shift_toggle",
   "keybinds": [
     {
       "type": "bindm",
@@ -243,6 +243,13 @@
       "key": "G",
       "dispatcher": "exec",
       "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle github"
+    },
+    {
+      "type": "bind",
+      "mods": "$mainMod&SHIFT_L",
+      "key": "B",
+      "dispatcher": "exec",
+      "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle movetimer"
     },
     {
       "type": "bindl",
@@ -505,5 +512,6 @@
     }
   ],
   "monitors": [],
-  "workspaceCount": 8
+  "workspaceCount": 8,
+  "startup": []
 }
