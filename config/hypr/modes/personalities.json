@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "default_workspace": 1,
+  "personalities": {
+    "1": {
+      "id": "ops",
+      "label": "Ops Deck",
+      "icon": "󰣇",
+      "aura": "noir",
+      "theme": "xoperator",
+      "terminal_profile": "default",
+      "privacy": "inherit",
+      "focus_level": "balanced"
+    },
+    "2": {
+      "id": "code",
+      "label": "Code Bay",
+      "icon": "󰅩",
+      "aura": "matrix",
+      "theme": "xoperator",
+      "terminal_profile": "code",
+      "privacy": "inherit",
+      "focus_level": "deep"
+    },
+    "3": {
+      "id": "web",
+      "label": "Intel Web",
+      "icon": "󰖟",
+      "aura": "midnight",
+      "theme": "xoperator",
+      "terminal_profile": "default",
+      "privacy": "inherit",
+      "focus_level": "balanced"
+    },
+    "4": {
+      "id": "comms",
+      "label": "Comms",
+      "icon": "󰭹",
+      "aura": "violet",
+      "theme": "xoperator",
+      "terminal_profile": "default",
+      "privacy": "redact",
+      "focus_level": "light"
+    },
+    "5": {
+      "id": "media",
+      "label": "Media Lab",
+      "icon": "󰝚",
+      "aura": "synthwave",
+      "theme": "glass",
+      "terminal_profile": "default",
+      "privacy": "inherit",
+      "focus_level": "light"
+    },
+    "6": {
+      "id": "notes",
+      "label": "Archive",
+      "icon": "󰠮",
+      "aura": "amber",
+      "theme": "xoperator",
+      "terminal_profile": "code",
+      "privacy": "redact",
+      "focus_level": "deep"
+    },
+    "7": {
+      "id": "systems",
+      "label": "Systems",
+      "icon": "󱉟",
+      "aura": "thermal",
+      "theme": "xoperator",
+      "terminal_profile": "admin",
+      "privacy": "inherit",
+      "focus_level": "balanced"
+    },
+    "8": {
+      "id": "agents",
+      "label": "Agent Grid",
+      "icon": "󱙺",
+      "aura": "cyan",
+      "theme": "xoperator",
+      "terminal_profile": "code",
+      "privacy": "redact",
+      "focus_level": "deep"
+    },
+    "9": {
+      "id": "private",
+      "label": "Blackout",
+      "icon": "󰌾",
+      "aura": "blackout",
+      "theme": "blackout",
+      "terminal_profile": "private",
+      "privacy": "force_on",
+      "focus_level": "private"
+    },
+    "10": {
+      "id": "scratch",
+      "label": "Scratch",
+      "icon": "󰞷",
+      "aura": "noir",
+      "theme": "xoperator",
+      "terminal_profile": "default",
+      "privacy": "inherit",
+      "focus_level": "balanced"
+    }
+  }
+}

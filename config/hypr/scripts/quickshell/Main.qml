@@ -110,6 +110,94 @@ PanelWindow {
     }
 
     property int _popupCounter: 0
+    property bool privacyMode: false
+    property bool notificationShowPopups: true
+    property bool notificationRedactTitle: false
+    property bool notificationRedactBody: true
+    property string hiddenNotificationSummary: "Notification hidden"
+    property string hiddenNotificationBody: "Private mode is hiding notification details."
+
+    function parseBool(value, fallback) {
+        return value === undefined ? fallback : value === true;
+    }
+
+    function applyNotificationPolicy(rawText) {
+        let text = rawText ? rawText.trim() : "";
+        if (text === "") return;
+
+        try {
+            let parsed = JSON.parse(text);
+            let activePolicy = parsed.active_policy || parsed.notification_policy || parsed.mode || "normal";
+            let policy = parsed.policy || {};
+            let privacyEnabled = parsed.privacy_enabled === true || activePolicy === "privacy" || activePolicy === "presentation";
+
+            masterWindow.notificationShowPopups = parseBool(policy.show_popups, !privacyEnabled);
+            masterWindow.notificationRedactTitle = parseBool(policy.redact_title, privacyEnabled);
+            masterWindow.notificationRedactBody = parseBool(policy.redact_body, true);
+            masterWindow.privacyMode = privacyEnabled || masterWindow.notificationRedactTitle;
+        } catch (e) {
+            // If the policy file exists but is malformed, fail closed for visible content.
+            masterWindow.notificationShowPopups = false;
+            masterWindow.notificationRedactTitle = true;
+            masterWindow.notificationRedactBody = true;
+            masterWindow.privacyMode = true;
+            console.log("Error parsing notification privacy policy:", e);
+        }
+    }
+
+    function sanitizedNotificationData(n) {
+        let app = n.appName !== "" ? n.appName : "System";
+        let redactTitle = masterWindow.privacyMode || masterWindow.notificationRedactTitle;
+        let redactBody = masterWindow.privacyMode || masterWindow.notificationRedactBody;
+
+        return {
+            "appName": app,
+            "summary": redactTitle ? masterWindow.hiddenNotificationSummary : (n.summary !== "" ? n.summary : "No Title"),
+            "body": redactBody ? (redactTitle ? masterWindow.hiddenNotificationBody : "") : (n.body !== "" ? n.body : ""),
+            "iconPath": masterWindow.privacyMode ? "" : (n.appIcon !== "" ? n.appIcon : ""),
+            "isRedacted": redactTitle || redactBody,
+            "notif": masterWindow.privacyMode ? null : n
+        };
+    }
+
+    function redactExistingNotificationHistory() {
+        for (let i = 0; i < globalNotificationHistory.count; i++) {
+            globalNotificationHistory.setProperty(i, "summary", masterWindow.hiddenNotificationSummary);
+            globalNotificationHistory.setProperty(i, "body", masterWindow.hiddenNotificationBody);
+            globalNotificationHistory.setProperty(i, "iconPath", "");
+            globalNotificationHistory.setProperty(i, "isRedacted", true);
+            globalNotificationHistory.setProperty(i, "notif", null);
+        }
+        for (let j = 0; j < activePopupsModel.count; j++) {
+            activePopupsModel.setProperty(j, "summary", masterWindow.hiddenNotificationSummary);
+            activePopupsModel.setProperty(j, "body", masterWindow.hiddenNotificationBody);
+            activePopupsModel.setProperty(j, "iconPath", "");
+            activePopupsModel.setProperty(j, "isRedacted", true);
+            activePopupsModel.setProperty(j, "notif", null);
+        }
+    }
+
+    onPrivacyModeChanged: {
+        if (privacyMode) {
+            redactExistingNotificationHistory();
+        }
+    }
+
+    Process {
+        id: notificationPolicyReader
+        command: ["bash", "-c", "runtime=\"${XDG_RUNTIME_DIR:-/tmp}/hypr-rice\"; if [ -r \"$runtime/notification_policy.json\" ]; then cat \"$runtime/notification_policy.json\"; elif [ -r \"$runtime/state.json\" ]; then cat \"$runtime/state.json\"; else echo '{}'; fi"]
+        stdout: StdioCollector {
+            onStreamFinished: masterWindow.applyNotificationPolicy(this.text)
+        }
+    }
+
+    Timer {
+        interval: 1000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: {
+            notificationPolicyReader.running = false;
+            notificationPolicyReader.running = true;
+        }
+    }
 
     function removePopup(uid) {
         for (let i = 0; i < activePopupsModel.count; i++) {
@@ -127,21 +215,17 @@ PanelWindow {
         imageSupported: true
 
         onNotification: (n) => {
-            console.log("Saving to history:", n.appName, "-", n.summary);
-            
-            let notifData = {
-                "appName": n.appName !== "" ? n.appName : "System",
-                "summary": n.summary !== "" ? n.summary : "No Title",
-                "body": n.body !== "" ? n.body : "",
-                "iconPath": n.appIcon !== "" ? n.appIcon : "",
-                "notif": n
-            };
+            let appName = n.appName !== "" ? n.appName : "System";
+            console.log("Notification received:", appName, masterWindow.privacyMode ? "(redacted)" : "(stored)");
 
+            let notifData = masterWindow.sanitizedNotificationData(n);
             globalNotificationHistory.insert(0, notifData);
 
-            masterWindow._popupCounter++;
-            let popupData = Object.assign({ "uid": masterWindow._popupCounter }, notifData);
-            activePopupsModel.append(popupData);
+            if (masterWindow.notificationShowPopups) {
+                masterWindow._popupCounter++;
+                let popupData = Object.assign({ "uid": masterWindow._popupCounter }, notifData);
+                activePopupsModel.append(popupData);
+            }
         }
     }   
     property var notifModel: globalNotificationHistory

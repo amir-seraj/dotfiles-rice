@@ -73,6 +73,7 @@ Variants {
             property int workspaceCount: 8
             
             property string activeWidget: "" 
+            property bool privacyMode: false
             property bool isSettingsOpen: activeWidget === "settings"
 
             property real settingsSlideProgress: isSettingsOpen ? 1.0 : 0.0
@@ -112,6 +113,36 @@ Variants {
                 }
             }
             
+            function applyPrivacyState(rawText) {
+                let text = rawText ? rawText.trim() : "";
+                if (text === "") return;
+
+                try {
+                    let parsed = JSON.parse(text);
+                    let activePolicy = parsed.active_policy || parsed.notification_policy || parsed.mode || "normal";
+                    barWindow.privacyMode = parsed.privacy_enabled === true || activePolicy === "privacy" || activePolicy === "presentation";
+                } catch (e) {
+                    // Fail closed when a malformed runtime policy exists.
+                    barWindow.privacyMode = true;
+                }
+            }
+
+            Process {
+                id: privacyStateReader
+                command: ["bash", "-c", "runtime=\"${XDG_RUNTIME_DIR:-/tmp}/hypr-rice\"; if [ -r \"$runtime/notification_policy.json\" ]; then cat \"$runtime/notification_policy.json\"; elif [ -r \"$runtime/state.json\" ]; then cat \"$runtime/state.json\"; else echo '{}'; fi"]
+                stdout: StdioCollector {
+                    onStreamFinished: barWindow.applyPrivacyState(this.text)
+                }
+            }
+
+            Timer {
+                interval: 1000; running: true; repeat: true; triggeredOnStart: true
+                onTriggered: {
+                    privacyStateReader.running = false;
+                    privacyStateReader.running = true;
+                }
+            }
+
             Process {
                 id: recPoller
                 command: ["bash", "-c", "if [ -s ~/.cache/qs_recording_state/rec_pid ] && kill -0 $(cat ~/.cache/qs_recording_state/rec_pid) 2>/dev/null; then echo '1'; else echo '0'; fi"]
@@ -257,13 +288,20 @@ Variants {
             property string displayTime: ""
             property string displayArtUrl: ""
 
-            onMusicDataChanged: {
+            function refreshMediaDisplay() {
                 if (musicData && musicData.status !== "Stopped" && musicData.title !== "") {
-                    displayTitle = musicData.title;
-                    displayTime = musicData.timeStr;
-                    displayArtUrl = musicData.artUrl;
+                    displayTitle = privacyMode ? "Media playing" : musicData.title;
+                    displayTime = privacyMode ? "" : musicData.timeStr;
+                    displayArtUrl = privacyMode ? "" : musicData.artUrl;
+                } else {
+                    displayTitle = "";
+                    displayTime = "";
+                    displayArtUrl = "";
                 }
             }
+
+            onMusicDataChanged: refreshMediaDisplay()
+            onPrivacyModeChanged: refreshMediaDisplay()
 
             property bool isMediaActive: barWindow.musicData.status !== "Stopped" && barWindow.musicData.title !== ""
             property bool isWifiOn: barWindow.wifiStatus.toLowerCase() === "enabled" || barWindow.wifiStatus.toLowerCase() === "on"
@@ -1002,7 +1040,7 @@ Variants {
                                         clip: true
                                         Image { 
                                             anchors.fill: parent; 
-                                            source: barWindow.displayArtUrl || ""; 
+                                            source: barWindow.privacyMode ? "" : (barWindow.displayArtUrl || "");
                                             fillMode: Image.PreserveAspectCrop 
                                         }
                                         

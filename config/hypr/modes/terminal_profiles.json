@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "default_profile": "default",
+  "profiles": {
+    "default": {
+      "label": "Default Operator",
+      "kitty_config": null,
+      "opacity": 0.82,
+      "font_size_delta": 0,
+      "safe_env": {
+        "RICE_TERMINAL_PROFILE": "default"
+      }
+    },
+    "code": {
+      "label": "Code Bay",
+      "kitty_config": "profiles/code.conf",
+      "opacity": 0.88,
+      "font_size_delta": 0,
+      "safe_env": {
+        "RICE_TERMINAL_PROFILE": "code"
+      }
+    },
+    "private": {
+      "label": "Private Shell",
+      "kitty_config": "profiles/private.conf",
+      "opacity": 0.96,
+      "font_size_delta": 1,
+      "safe_env": {
+        "RICE_TERMINAL_PROFILE": "private",
+        "RICE_PRIVACY": "1"
+      }
+    },
+    "admin": {
+      "label": "Systems Admin",
+      "kitty_config": "profiles/admin.conf",
+      "opacity": 0.9,
+      "font_size_delta": 0,
+      "safe_env": {
+        "RICE_TERMINAL_PROFILE": "admin"
+      }
+    }
+  }
+}

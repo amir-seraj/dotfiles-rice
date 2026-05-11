@@ -169,6 +169,13 @@
     },
     {
       "type": "bind",
+      "mods": "$mainMod&CTRL",
+      "key": "SPACE",
+      "dispatcher": "exec",
+      "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle commanddeck"
+    },
+    {
+      "type": "bind",
       "mods": "$mainMod&SHIFT_L",
       "key": "S",
       "dispatcher": "exec",
@@ -215,6 +222,13 @@
       "key": "T",
       "dispatcher": "exec",
       "command": "bash ~/.config/hypr/scripts/qs_manager.sh toggle focustime"
+    },
+    {
+      "type": "bind",
+      "mods": "$mainMod&SHIFT_L",
+      "key": "P",
+      "dispatcher": "exec",
+      "command": "bash ~/.config/hypr/scripts/ricectl.sh privacy toggle && notify-send -a Privacy 'Privacy mode toggled' 'Notification details are hidden when enabled'"
     },
     {
       "type": "bind",

@@ -36,6 +36,9 @@ function getLayout(name, mx, my, mw, mh, userScale) {
         "network":   { w: s(900, scale), h: s(700, scale), rx: mw - s(904, scale), ry: s(60, scale), comp: "network/NetworkPopup.qml" },
         "volume":    { w: s(450, scale), h: s(700, scale), rx: mw - s(455, scale), ry: s(60, scale), comp: "volume/VolumePopup.qml" },
         
+        // --- Command Deck / cockpit ---
+        "commanddeck": { w: s(1180, scale), h: s(760, scale), rx: Math.floor((mw/2)-(s(1180, scale)/2)), ry: Math.floor((mh/2)-(s(760, scale)/2)), comp: "commanddeck/CommandDeckPopup.qml" },
+
         // --- GitHub ---
         "github":    { w: s(1200, scale), h: s(820, scale), rx: Math.floor((mw/2)-(s(1200, scale)/2)), ry: Math.floor((mh/2)-(s(820, scale)/2)), comp: "github/GitHubPopup.qml" },
 

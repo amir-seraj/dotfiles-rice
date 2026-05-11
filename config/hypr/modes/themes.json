@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "default_theme": "xoperator",
+  "themes": {
+    "xoperator": {
+      "label": "X Operator Noir",
+      "palette": "catppuccin-mocha",
+      "accent": "#89b4fa",
+      "surface": "#11111b",
+      "text": "#cdd6f4",
+      "radius": 16,
+      "blur": true,
+      "shadow": true
+    },
+    "glass": {
+      "label": "Operator Glass",
+      "palette": "catppuccin-mocha",
+      "accent": "#cba6f7",
+      "surface": "#181825",
+      "text": "#cdd6f4",
+      "radius": 20,
+      "blur": true,
+      "shadow": true
+    },
+    "blackout": {
+      "label": "Privacy Blackout",
+      "palette": "minimal-dark",
+      "accent": "#6c7086",
+      "surface": "#000000",
+      "text": "#bac2de",
+      "radius": 10,
+      "blur": false,
+      "shadow": false
+    },
+    "amber": {
+      "label": "Archive Amber",
+      "palette": "warm-dark",
+      "accent": "#f9e2af",
+      "surface": "#1e1e2e",
+      "text": "#f5e0dc",
+      "radius": 16,
+      "blur": true,
+      "shadow": true
+    }
+  }
+}

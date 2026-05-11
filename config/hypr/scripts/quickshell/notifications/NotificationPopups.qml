@@ -111,8 +111,9 @@ PanelWindow {
                 width: ListView.view.width
                 height: contentCol.height + (popupWindow.layoutConfig.padding * 2)
 
-                property string fullSummary: model.summary || ""
-                property string fullBody: model.body || ""
+                property bool isRedacted: model.isRedacted === true
+                property string fullSummary: isRedacted ? "Notification hidden" : (model.summary || "")
+                property string fullBody: isRedacted ? "Private mode is hiding notification details." : (model.body || "")
                 property int typeLenSum: 0
                 property int typeLenBody: 0
 

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "default_policy": "normal",
+  "policies": {
+    "normal": {
+      "show_popups": true,
+      "store_history": false,
+      "redact_title": false,
+      "redact_body": true,
+      "urgency_minimum": "low",
+      "sound": true
+    },
+    "focus": {
+      "show_popups": false,
+      "store_history": false,
+      "redact_title": true,
+      "redact_body": true,
+      "urgency_minimum": "critical",
+      "sound": false
+    },
+    "privacy": {
+      "show_popups": false,
+      "store_history": false,
+      "redact_title": true,
+      "redact_body": true,
+      "urgency_minimum": "critical",
+      "sound": false
+    },
+    "presentation": {
+      "show_popups": false,
+      "store_history": false,
+      "redact_title": true,
+      "redact_body": true,
+      "urgency_minimum": "critical",
+      "sound": false
+    },
+    "personal": {
+      "show_popups": true,
+      "store_history": false,
+      "redact_title": true,
+      "redact_body": true,
+      "urgency_minimum": "normal",
+      "sound": true
+    }
+  },
+  "safe_event_shape": {
+    "allowed": ["id", "app_class", "urgency", "age_seconds", "safe_summary"],
+    "forbidden": ["title", "body", "actions", "image", "raw"]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "fail_closed": true,
+  "default_privacy": "off",
+  "redaction": {
+    "replacement": "REDACTED",
+    "max_label_length": 32,
+    "hide_window_titles": true,
+    "hide_notification_bodies": true,
+    "hide_notification_titles": true,
+    "hide_clipboard": true,
+    "hide_browser_text": true,
+    "hide_note_bodies": true,
+    "hide_transcripts": true,
+    "hide_screenshots": true,
+    "hide_network_addresses": true,
+    "hide_paths_outside_repo": true
+  },
+  "safe_fields": [
+    "schema_version",
+    "updated_at",
+    "mode",
+    "privacy_enabled",
+    "workspace",
+    "workspace_personality_id",
+    "workspace_personality_label",
+    "aura",
+    "theme",
+    "counts",
+    "health",
+    "status",
+    "percent",
+    "level",
+    "safe_summary"
+  ],
+  "blocked_patterns": [
+    "token",
+    "secret",
+    "password",
+    "authorization",
+    "cookie",
+    "api[_-]?key",
+    "-----BEGIN",
+    "\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b",
+    "[A-Fa-f0-9]{32,}"
+  ]
+}

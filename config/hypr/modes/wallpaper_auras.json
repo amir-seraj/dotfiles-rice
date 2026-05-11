@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "default_aura": "noir",
+  "auras": {
+    "noir": {
+      "label": "Noir Glass",
+      "accent": "#89b4fa",
+      "background": "gradient-dark",
+      "intensity": "medium",
+      "motion": "slow"
+    },
+    "matrix": {
+      "label": "Matrix Code",
+      "accent": "#a6e3a1",
+      "background": "scanline-dark",
+      "intensity": "high",
+      "motion": "medium"
+    },
+    "midnight": {
+      "label": "Midnight Intel",
+      "accent": "#74c7ec",
+      "background": "deep-blue",
+      "intensity": "low",
+      "motion": "slow"
+    },
+    "violet": {
+      "label": "Violet Comms",
+      "accent": "#cba6f7",
+      "background": "purple-glass",
+      "intensity": "medium",
+      "motion": "slow"
+    },
+    "synthwave": {
+      "label": "Synthwave Media",
+      "accent": "#f38ba8",
+      "background": "magenta-cyan",
+      "intensity": "high",
+      "motion": "medium"
+    },
+    "amber": {
+      "label": "Amber Archive",
+      "accent": "#f9e2af",
+      "background": "warm-dark",
+      "intensity": "medium",
+      "motion": "slow"
+    },
+    "thermal": {
+      "label": "Thermal Systems",
+      "accent": "#fab387",
+      "background": "orange-dark",
+      "intensity": "medium",
+      "motion": "pulse"
+    },
+    "cyan": {
+      "label": "Agent Cyan",
+      "accent": "#94e2d5",
+      "background": "cyan-dark",
+      "intensity": "medium",
+      "motion": "scan"
+    },
+    "blackout": {
+      "label": "Blackout",
+      "accent": "#6c7086",
+      "background": "solid-black",
+      "intensity": "low",
+      "motion": "none"
+    }
+  }
+}
