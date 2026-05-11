@@ -29,6 +29,9 @@ if [[ "$ACTION" =~ ^[0-9]+$ ]]; then
     
     CMD="workspace $WORKSPACE_NUM"
     [[ "$2" == "move" ]] && CMD="movetoworkspace $WORKSPACE_NUM"
+    if [[ "$2" != "move" && -x "$QS_DIR/ricectl.sh" ]]; then
+        "$QS_DIR/ricectl.sh" workspace-enter "$WORKSPACE_NUM" >/dev/null 2>&1 || true
+    fi
     hyprctl --batch "dispatch $CMD" >/dev/null 2>&1
     exit 0
 fi

@@ -70,10 +70,18 @@ Variants {
             property bool forceUpdateShow: false
             property bool isUpdateVisible: updateAvailable || forceUpdateShow
             
-            property int workspaceCount: 8
+            property int workspaceCount: 10
             
             property string activeWidget: "" 
             property bool privacyMode: false
+            property int currentWorkspace: 1
+            property string currentPersonalityId: "ops"
+            property string currentPersonalityLabel: "Ops Deck"
+            property string currentPersonalityIcon: "󰣇"
+            property string currentPersonalityAura: "noir"
+            property string currentPersonalityPrivacy: "inherit"
+            property string currentFocusLevel: "balanced"
+            property color personalityAccent: auraColor(currentPersonalityAura)
             property bool isSettingsOpen: activeWidget === "settings"
 
             property real settingsSlideProgress: isSettingsOpen ? 1.0 : 0.0
@@ -113,6 +121,20 @@ Variants {
                 }
             }
             
+            function auraColor(aura) {
+                switch(aura) {
+                    case "matrix": return mocha.green;
+                    case "midnight": return mocha.blue;
+                    case "violet": return mocha.mauve;
+                    case "synthwave": return mocha.pink;
+                    case "amber": return mocha.yellow;
+                    case "thermal": return mocha.red;
+                    case "cyan": return mocha.teal;
+                    case "blackout": return mocha.overlay2;
+                    default: return mocha.text;
+                }
+            }
+
             function applyPrivacyState(rawText) {
                 let text = rawText ? rawText.trim() : "";
                 if (text === "") return;
@@ -120,7 +142,14 @@ Variants {
                 try {
                     let parsed = JSON.parse(text);
                     let activePolicy = parsed.active_policy || parsed.notification_policy || parsed.mode || "normal";
-                    barWindow.privacyMode = parsed.privacy_enabled === true || activePolicy === "privacy" || activePolicy === "presentation";
+                    if (parsed.workspace !== undefined) barWindow.currentWorkspace = parsed.workspace;
+                    if (parsed.workspace_personality_id !== undefined) barWindow.currentPersonalityId = parsed.workspace_personality_id;
+                    if (parsed.workspace_personality_label !== undefined) barWindow.currentPersonalityLabel = parsed.workspace_personality_label;
+                    if (parsed.workspace_personality_icon !== undefined) barWindow.currentPersonalityIcon = parsed.workspace_personality_icon;
+                    if (parsed.aura !== undefined) barWindow.currentPersonalityAura = parsed.aura;
+                    if (parsed.workspace_privacy !== undefined) barWindow.currentPersonalityPrivacy = parsed.workspace_privacy;
+                    if (parsed.focus_level !== undefined) barWindow.currentFocusLevel = parsed.focus_level;
+                    barWindow.privacyMode = parsed.privacy_enabled === true || activePolicy === "privacy" || activePolicy === "presentation" || barWindow.currentPersonalityPrivacy === "force_on";
                 } catch (e) {
                     // Fail closed when a malformed runtime policy exists.
                     barWindow.privacyMode = true;
@@ -129,7 +158,7 @@ Variants {
 
             Process {
                 id: privacyStateReader
-                command: ["bash", "-c", "runtime=\"${XDG_RUNTIME_DIR:-/tmp}/hypr-rice\"; if [ -r \"$runtime/notification_policy.json\" ]; then cat \"$runtime/notification_policy.json\"; elif [ -r \"$runtime/state.json\" ]; then cat \"$runtime/state.json\"; else echo '{}'; fi"]
+                command: ["bash", "-c", "runtime=\"${XDG_RUNTIME_DIR:-/tmp}/hypr-rice\"; if [ -r \"$runtime/state.json\" ]; then cat \"$runtime/state.json\"; elif [ -r \"$runtime/notification_policy.json\" ]; then cat \"$runtime/notification_policy.json\"; else echo '{}'; fi"]
                 stdout: StdioCollector {
                     onStreamFinished: barWindow.applyPrivacyState(this.text)
                 }
@@ -335,7 +364,7 @@ Variants {
                                 let newData = JSON.parse(txt);
                                 
                                 while (workspacesModel.count < newData.length) {
-                                    workspacesModel.append({ "wsId": "", "wsState": "" });
+                                    workspacesModel.append({ "wsId": "", "wsState": "", "wsIcon": "", "wsLabel": "", "wsAura": "noir", "wsPrivacy": "inherit" });
                                 }
                                 
                                 while (workspacesModel.count > newData.length) {
@@ -345,13 +374,35 @@ Variants {
                                 let newActive = -1;
 
                                 for (let i = 0; i < newData.length; i++) {
-                                    if (newData[i].state === "active") newActive = i;
+                                    if (newData[i].state === "active") {
+                                        newActive = i;
+                                        barWindow.currentWorkspace = newData[i].id || (i + 1);
+                                        barWindow.currentPersonalityId = newData[i].personality_id || barWindow.currentPersonalityId;
+                                        barWindow.currentPersonalityLabel = newData[i].label || ("Workspace " + newData[i].id);
+                                        barWindow.currentPersonalityIcon = newData[i].icon || newData[i].id.toString();
+                                        barWindow.currentPersonalityAura = newData[i].aura || "noir";
+                                        barWindow.currentPersonalityPrivacy = newData[i].privacy || "inherit";
+                                        barWindow.currentFocusLevel = newData[i].focus_level || "balanced";
+                                        if (barWindow.currentPersonalityPrivacy === "force_on") barWindow.privacyMode = true;
+                                    }
 
                                     if (workspacesModel.get(i).wsState !== newData[i].state) {
                                         workspacesModel.setProperty(i, "wsState", newData[i].state);
                                     }
                                     if (workspacesModel.get(i).wsId !== newData[i].id.toString()) {
                                         workspacesModel.setProperty(i, "wsId", newData[i].id.toString());
+                                    }
+                                    if (workspacesModel.get(i).wsIcon !== (newData[i].icon || newData[i].id.toString())) {
+                                        workspacesModel.setProperty(i, "wsIcon", newData[i].icon || newData[i].id.toString());
+                                    }
+                                    if (workspacesModel.get(i).wsLabel !== (newData[i].label || ("Workspace " + newData[i].id))) {
+                                        workspacesModel.setProperty(i, "wsLabel", newData[i].label || ("Workspace " + newData[i].id));
+                                    }
+                                    if (workspacesModel.get(i).wsAura !== (newData[i].aura || "noir")) {
+                                        workspacesModel.setProperty(i, "wsAura", newData[i].aura || "noir");
+                                    }
+                                    if (workspacesModel.get(i).wsPrivacy !== (newData[i].privacy || "inherit")) {
+                                        workspacesModel.setProperty(i, "wsPrivacy", newData[i].privacy || "inherit");
                                     }
                                 }
 
@@ -858,7 +909,7 @@ Variants {
                         y: (workspacesBox.height - barWindow.s(32)) / 2
                         height: barWindow.s(32)
                         radius: barWindow.s(10)
-                        color: mocha.mauve
+                        color: barWindow.personalityAccent
                         z: 0
 
                         property int prevIdx: 0
@@ -946,19 +997,7 @@ Variants {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: {
-                                        switch(wsName) {
-                                            case "1": return "\uF120";   // terminal
-                                            case "2": return "\uF0AC";   // browser
-                                            case "3": return "\uF121";   // code
-                                            case "4": return "\uF4AD";   // chat
-                                            case "5": return "\uF001";   // music
-                                            case "6": return "\uF07B";   // folder
-                                            case "7": return "\uF11B";   // gamepad
-                                            case "8": return "\uF013";   // gear
-                                            default:  return wsName;
-                                        }
-                                    }
+                                    text: model.wsIcon || wsName
                                     font.family: "Iosevka Nerd Font"
                                     font.pixelSize: barWindow.s(15)
                                     font.weight: stateLabel === "active" ? Font.Black : (stateLabel === "occupied" ? Font.Bold : Font.Medium)
@@ -979,6 +1018,59 @@ Variants {
                 }
 
                 Rectangle {
+                    id: personalityChip
+                    property bool isHovered: personalityMouse.containsMouse
+                    color: isHovered ? Qt.rgba(mocha.surface1.r, mocha.surface1.g, mocha.surface1.b, 0.95) : Qt.rgba(mocha.base.r, mocha.base.g, mocha.base.b, 0.75)
+                    radius: barWindow.s(14)
+                    border.width: 1
+                    border.color: Qt.rgba(barWindow.personalityAccent.r, barWindow.personalityAccent.g, barWindow.personalityAccent.b, barWindow.privacyMode ? 0.55 : 0.25)
+                    y: (parent.height - barWindow.barHeight) / 2
+                    height: barWindow.barHeight
+                    width: personalityLayout.implicitWidth + barWindow.s(22)
+                    clip: true
+
+                    property real defaultX: workspacesBox.defaultX + workspacesBox.width + (workspacesBox.width > 0 ? barWindow.s(4) : 0)
+                    property real settingsX: mediaBox.settingsX - width - barWindow.s(4)
+                    x: defaultX + (settingsX - defaultX) * barWindow.settingsSlideProgress
+                    visible: opacity > 0
+                    opacity: workspacesModel.count > 0 ? 1.0 : 0.0
+
+                    Behavior on x { NumberAnimation { duration: 400; easing.type: Easing.OutExpo } }
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+
+                    RowLayout {
+                        id: personalityLayout
+                        anchors.centerIn: parent
+                        spacing: barWindow.s(7)
+
+                        Text {
+                            text: barWindow.privacyMode ? "󰌾" : barWindow.currentPersonalityIcon
+                            font.family: "Iosevka Nerd Font"
+                            font.pixelSize: barWindow.s(17)
+                            color: barWindow.personalityAccent
+                        }
+                        Text {
+                            text: barWindow.privacyMode ? "PRIVATE" : barWindow.currentPersonalityLabel
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: barWindow.s(12)
+                            font.weight: Font.Black
+                            color: mocha.text
+                            Layout.maximumWidth: barWindow.s(118)
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        id: personalityMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/ricectl.sh state | jq . >/tmp/qs_rice_state.last 2>/dev/null || true"])
+                    }
+                }
+
+                Rectangle {
                     id: mediaBox
                     color: Qt.rgba(mocha.base.r, mocha.base.g, mocha.base.b, 0.75)
                     radius: barWindow.s(14); border.width: 1; border.color: Qt.rgba(mocha.text.r, mocha.text.g, mocha.text.b, 0.05)
@@ -989,7 +1081,7 @@ Variants {
                     width: barWindow.isMediaActive ? innerMediaLayout.implicitWidth + barWindow.s(24) : 0
                     Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
 
-                    property real defaultX: workspacesBox.defaultX + workspacesBox.width + (workspacesBox.width > 0 ? barWindow.s(4) : 0)
+                    property real defaultX: personalityChip.defaultX + personalityChip.width + (personalityChip.width > 0 ? barWindow.s(4) : 0)
                     property real settingsX: centerBox.settingsX - width - (width > 0 ? barWindow.s(4) : 0)
 
                     x: defaultX + (settingsX - defaultX) * barWindow.settingsSlideProgress
@@ -1508,7 +1600,7 @@ Variants {
                                     Text { 
                                         id: wifiText
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: barWindow.showEthernet ? barWindow.ethStatus : ((barWindow.isWifiOn ? (barWindow.wifiSsid !== "" ? barWindow.wifiSsid : "On") : "Off"))
+                                        text: barWindow.privacyMode ? (barWindow.showEthernet ? barWindow.ethStatus : (barWindow.isWifiOn ? "Wi‑Fi" : "Off")) : (barWindow.showEthernet ? barWindow.ethStatus : ((barWindow.isWifiOn ? (barWindow.wifiSsid !== "" ? barWindow.wifiSsid : "On") : "Off")))
                                         visible: text !== ""
                                         font.family: "JetBrains Mono"; font.pixelSize: barWindow.s(13); font.weight: Font.Black;
                                         color: barWindow.showEthernet ? (barWindow.ethStatus === "Connected" ? mocha.text : mocha.text) : (barWindow.isWifiOn ? mocha.text : mocha.text);
@@ -1562,7 +1654,7 @@ Variants {
                                     Text { 
                                         id: btText
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: barWindow.btDevice
+                                        text: barWindow.privacyMode && barWindow.btDevice !== "" ? "Device" : barWindow.btDevice
                                         visible: text !== ""; 
                                         font.family: "JetBrains Mono"; font.pixelSize: barWindow.s(13); font.weight: Font.Black; 
                                         color: barWindow.isBtOn ? mocha.text : mocha.text;

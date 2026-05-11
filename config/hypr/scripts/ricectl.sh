@@ -68,7 +68,7 @@ ensure_state() {
       --arg now "$now" \
       --arg aura "$default_aura" \
       --arg theme "$default_theme" \
-      '{schema_version:1, updated_at:$now, mode:"normal", privacy_enabled:false, workspace:1, workspace_personality_id:"ops", workspace_personality_label:"Ops Deck", aura:$aura, theme:$theme, notification_policy:"normal", flags:{focus:false,presentation:false,personal:false}}' \
+      '{schema_version:1, updated_at:$now, mode:"normal", privacy_enabled:false, workspace:1, workspace_personality_id:"ops", workspace_personality_label:"Ops Deck", workspace_personality_icon:"󰣇", workspace_privacy:"inherit", focus_level:"balanced", aura:$aura, theme:$theme, notification_policy:"normal", flags:{focus:false,presentation:false,personal:false}}' \
       | atomic_write "$STATE_FILE"
   fi
   update_policy >/dev/null
@@ -152,7 +152,7 @@ workspace_enter() {
     --argjson n "$n" \
     --argjson entry "$entry" \
     --arg now "$(now_utc)" \
-    ".workspace = \$n | .workspace_personality_id = \$entry.id | .workspace_personality_label = \$entry.label | .aura = \$entry.aura | .theme = \$entry.theme | .privacy_enabled = $privacy_expr | .updated_at = \$now | .notification_policy = (if .privacy_enabled then \"privacy\" else .mode end)" \
+    ".workspace = \$n | .workspace_personality_id = \$entry.id | .workspace_personality_label = \$entry.label | .workspace_personality_icon = \$entry.icon | .workspace_privacy = \$entry.privacy | .focus_level = \$entry.focus_level | .terminal_profile = \$entry.terminal_profile | .aura = \$entry.aura | .theme = \$entry.theme | .privacy_enabled = $privacy_expr | .updated_at = \$now | .notification_policy = (if .privacy_enabled then \"privacy\" else .mode end)" \
     "$STATE_FILE" | atomic_write "$STATE_FILE"
   update_policy >/dev/null
   read_state
